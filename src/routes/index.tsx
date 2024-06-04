@@ -49,11 +49,11 @@ export default component$(() => {
     <>
       <CartCounter number={4} />
       <div>out of stream</div>
-        <CartCounter number={5} />
+      <CartCounter number={5} />
       <Stream data={{ slot1: <CartCounter number={6} />, slot2: <CompWrapper /> }} />
-        <CartCounter  number={8} />
+      <CartCounter number={8} />
       <div>out of stream</div>
-        <CartCounter  number={9} />
+      <CartCounter  number={9} />
     </>
   );
 });
