@@ -1,0 +1,1 @@
+import{h as u,a as n}from"./q-CKEJRHkM.js";const s=l=>(console.log("value"),console.log(l.value),l.value.value?u("div",null,{class:n(a=>a.class,[l])},u("span",null,null,n(a=>a.value.value,[l]),3,null),3,"BF_4"):null);export{s as s_ta6Azw2kRuU};

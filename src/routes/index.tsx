@@ -1,7 +1,6 @@
 import type { JSXOutput, NoSerialize, StreamWriter } from '@builder.io/qwik';
 import {
   component$,
-  Slot,
   SSRStream,
   createContextId,
   useContext,
@@ -11,6 +10,7 @@ import { QwikCityProvider } from '@builder.io/qwik-city';
 import { renderToString } from '@builder.io/qwik/server';
 import { manifest } from '@qwik-client-manifest';
 import type { RenderToStreamOptions } from '@builder.io/qwik/server';
+import {CartCounter} from "~/components/cart-counter";
 
 export type StreamOptions = RenderToStreamOptions;
 
@@ -24,27 +24,41 @@ export const useStreamOptionsContextProvider = (
   useContextProvider(StreamOptionsContext, { opts });
 };
 
-const Counter = component$(() => {
-  return <div>counter</div>;
-});
-
 const useStreamOptions = () => {
   const { opts } = useContext(StreamOptionsContext);
 
   return opts;
 };
 
+const CompWrapper = component$(() => {
+    return (
+        <>
+            <CartCounter number={0} />
+            <div>wrapped</div>
+            <CartCounter number={1} />
+            INJECT_HERE
+            <CartCounter number={2} />
+            <div>wrapped</div>
+            <CartCounter number={3} />
+        </>
+    );
+});
+
 export default component$(() => {
   return (
     <>
+      <CartCounter number={4} />
       <div>out of stream</div>
-      <Stream slot={<Counter />} />
+        <CartCounter number={5} />
+      <Stream data={{ slot1: <CartCounter number={6} />, slot2: <CompWrapper /> }} />
+        <CartCounter  number={8} />
       <div>out of stream</div>
+        <CartCounter  number={9} />
     </>
   );
 });
 
-const Stream = component$<{ slot: JSXOutput }>(({ slot }) => {
+const Stream = component$<{ data: {slot1: JSXOutput, slot2: JSXOutput} }>(({ data: {slot1, slot2} }) => {
   const options = useStreamOptions();
 
   return (
@@ -55,8 +69,21 @@ const Stream = component$<{ slot: JSXOutput }>(({ slot }) => {
 
           const editedManifest = manifest || options?.manifest;
 
+            const renderedWrapperNode = await renderToString(
+                <QwikCityProvider>{slot2}</QwikCityProvider>,
+                {
+                    ...options,
+                    manifest: editedManifest,
+                    containerTagName: 'div',
+                    qwikLoader: {
+                        include: 'never',
+                    },
+                }
+            );
+           const [first, second] = renderedWrapperNode.html.split('INJECT_HERE')
+
           const renderedNode = await renderToString(
-            <QwikCityProvider>{slot}</QwikCityProvider>,
+            <QwikCityProvider>{slot1}</QwikCityProvider>,
             {
               ...options,
               manifest: editedManifest,
@@ -66,7 +93,7 @@ const Stream = component$<{ slot: JSXOutput }>(({ slot }) => {
               },
             }
           );
-          stream.write(renderedNode.html);
+          stream.write(first + renderedNode.html + second);
 
           stream.write('<div>in stream</div>');
         }}
